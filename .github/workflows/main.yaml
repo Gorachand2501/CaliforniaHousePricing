@@ -1,21 +1,23 @@
-# Workflow name
 name: Deploy to Heroku
 
-# Run workflow on every push to main branch
 on:
   push:
     branches: [main]
 
-# Workflow jobs
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      # Step 1: Checkout repository
+      # 1. Checkout code
       - name: Checkout
         uses: actions/checkout@v2
 
-      # Step 2: Build, push, and release Docker container to Heroku
+      # 2. Install Heroku CLI (THIS FIXES ENOENT)
+      - name: Install Heroku CLI
+        run: |
+          curl https://cli-assets.heroku.com/install.sh | sh
+
+      # 3. Build & Push Docker → Heroku Registry
       - name: Build, Push and Release Docker container to Heroku
         uses: gonuit/heroku-docker-deploy@v1.3.3
         with:
@@ -26,4 +28,3 @@ jobs:
           dockerfile_name: Dockerfile
           docker_options: "--no-cache"
           process_type: web
-          heroku_cli: true   # Ensures Heroku CLI is available for release
