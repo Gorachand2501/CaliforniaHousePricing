@@ -1,7 +1,3 @@
-on:
-  push:
-    branches: [main]
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -20,9 +16,6 @@ jobs:
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          # Log in to the CLI (for release) and Docker (for push)
-          # The HEROKU_API_KEY env var is used automatically by 'heroku container:release'
-          # For Docker, we log in using '_' as the username and the API key as the password
           echo "${{ secrets.HEROKU_API_KEY }}" | docker login --username=_ --password-stdin registry.heroku.com
 
       # 4. Build and push Docker image
@@ -30,17 +23,23 @@ jobs:
         env:
           HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
         run: |
-          # Build the image using the options from your original file
           docker build \
             --file ./Dockerfile \
             --tag registry.heroku.com/$HEROKU_APP_NAME/web \
             --no-cache \
             ./
-            
-          # Push the image
           docker push registry.heroku.com/$HEROKU_APP_NAME/web
 
-      # 5. Release Docker container
+      # 5. NEW STEP: Set stack to container
+      # This fixes the "Error: This command is for Docker apps only"
+      - name: Set Heroku stack to container
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+          HEROKU_APP_NAME: ${{ secrets.HEROKU_APP_NAME }}
+        run: |
+          heroku stack:set container --app $HEROKU_APP_NAME
+
+      # 6. Release Docker container
       - name: Release Docker container
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
