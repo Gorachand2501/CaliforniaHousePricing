@@ -8,17 +8,14 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. Checkout code
       - name: Checkout
         uses: actions/checkout@v2
 
-      # 2. Install Heroku CLI (THIS FIXES ENOENT)
       - name: Install Heroku CLI
         run: |
           curl https://cli-assets.heroku.com/install.sh | sh
 
-      # 3. Build & Push Docker → Heroku Registry
-      - name: Build, Push and Release Docker container to Heroku
+      - name: Build & Push Docker Image to Heroku
         uses: gonuit/heroku-docker-deploy@v1.3.3
         with:
           email: ${{ secrets.HEROKU_EMAIL }}
@@ -26,5 +23,10 @@ jobs:
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
           dockerfile_directory: ./
           dockerfile_name: Dockerfile
-          docker_options: "--no-cache"
           process_type: web
+
+      # ✅ NEW - Manually Release the container
+      - name: Release Web Container
+        run: heroku container:release web --app ${{ secrets.HEROKU_APP_NAME }}
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
