@@ -1,3 +1,7 @@
+on:
+  push:
+    branches: [main]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -30,8 +34,7 @@ jobs:
             ./
           docker push registry.heroku.com/$HEROKU_APP_NAME/web
 
-      # 5. NEW STEP: Set stack to container
-      # This fixes the "Error: This command is for Docker apps only"
+      # 5. Set Heroku stack to container
       - name: Set Heroku stack to container
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
